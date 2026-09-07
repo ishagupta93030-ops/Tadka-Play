@@ -10,7 +10,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed": "node database/seed.js"
+    "seed": "node database/seed.js",
+    "migrate:mysql-to-mongo": "node database/migrate-mysql-to-mongo.js",
+    "migrate:mysql-to-mongo:dry-run": "node database/migrate-mysql-to-mongo.js --dry-run"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -18,7 +20,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.9.7"
+    "mysql2": "^3.9.7",
+    "mongodb": "^6.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

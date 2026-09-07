@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const config = require('../config');
+const mongo = require('./mongo');
 
 // In-Memory Storage Fallback Engine for zero-setup execution if MySQL server is offline
 class MemoryStore {
@@ -230,6 +231,7 @@ class MemoryStore {
 let dbPool = null;
 let memoryStore = new MemoryStore();
 let useMySQL = false;
+let useMongo = false;
 
 function poolOptions() {
   const { host, port, user, password, database, ssl, connectionLimit } = config.db;
@@ -248,6 +250,24 @@ function poolOptions() {
 }
 
 async function initDB() {
+  if (config.databaseDriver === 'mongodb') {
+    try {
+      await mongo.initializeMongo(config.mongodb.uri, config.mongodb.database);
+      useMongo = true;
+      return;
+    } catch (err) {
+      if (config.isProduction) {
+        console.error('MongoDB connection failed in production. Fallback is disabled.');
+        throw err;
+      }
+      console.log('MongoDB connection failed:', err.message);
+      console.log('Fallback to TadkaPlay in-memory store for local development only.');
+      useMongo = false;
+      await memoryStore.initializeDefaults();
+      return;
+    }
+  }
+
   const { host, port, user, password, database, ssl } = config.db;
 
   try {
@@ -310,6 +330,9 @@ async function migrateSchema() {
 
 // Universal query runner that works seamlessly whether MySQL is running or using MemoryStore
 async function query(sql, params = []) {
+  if (useMongo) {
+    return mongo.mongoQuery(sql, params);
+  }
   if (useMySQL && dbPool) {
     try {
       const [rows] = await dbPool.query(sql, params);
@@ -634,6 +657,7 @@ async function query(sql, params = []) {
 
 // Helper: get a raw MySQL connection for transactions (returns null when using in-memory store)
 async function getConnection() {
+  if (useMongo) return mongo.getMongoConnection();
   if (useMySQL && dbPool) {
     const conn = await dbPool.getConnection();
     return conn;
@@ -643,6 +667,7 @@ async function getConnection() {
 
 // Helper: run a query using a provided connection when available
 async function queryWithConnection(conn, sql, params = []) {
+  if (useMongo) return mongo.mongoQueryWithConnection(conn, sql, params);
   if (conn) {
     try {
       const [rows] = await conn.query(sql, params);
@@ -657,4 +682,4 @@ async function queryWithConnection(conn, sql, params = []) {
   return await query(sql, params);
 }
 
-module.exports = { initDB, query, getConnection, queryWithConnection, isUsingMySQL: () => useMySQL };
+module.exports = { initDB, query, getConnection, queryWithConnection, isUsingMySQL: () => useMySQL, isUsingMongo: () => useMongo };

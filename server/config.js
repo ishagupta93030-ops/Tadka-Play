@@ -67,8 +67,12 @@ function validateProductionEnv() {
     missing.push('CLIENT_ORIGIN');
   }
 
+  const databaseDriver = process.env.DB_DRIVER || (process.env.MONGODB_URI ? 'mongodb' : 'mysql');
   const db = buildDbConfig();
-  if (!process.env.DATABASE_URL) {
+  if (databaseDriver === 'mongodb' && !process.env.MONGODB_URI) {
+    missing.push('MONGODB_URI');
+  }
+  if (databaseDriver !== 'mongodb' && !process.env.DATABASE_URL) {
     if (!db.host) missing.push('DB_HOST or DATABASE_URL');
     if (!db.user) missing.push('DB_USER or DATABASE_URL');
     if (!db.database) missing.push('DB_NAME or DATABASE_URL');
@@ -99,5 +103,10 @@ module.exports = {
     ...buildDbConfig(),
     ssl: buildSslConfig(),
     connectionLimit: Number(process.env.DB_POOL_SIZE) || 10
+  },
+  databaseDriver: process.env.DB_DRIVER || (process.env.MONGODB_URI ? 'mongodb' : 'mysql'),
+  mongodb: {
+    uri: process.env.MONGODB_URI || '',
+    database: process.env.MONGODB_DB || 'tadkaplay_db'
   }
 };

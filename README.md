@@ -17,7 +17,7 @@
    - 🏆 Virtual coin rewards for winning predictions & achievement unlocks.
 
 2. **Mobile-First Responsive UI**:
-   - Modern Indian sports app theme (Dark navy background `#0A0D14` with vibrant orange & golden yellow accents).
+   - Production-grade white theme with coordinated orange, amber, and slate accents.
    - Dynamic mobile bottom navigation bar (`Home`, `Live`, `Sports`, `Leaderboard`, `Account`).
    - Glassmorphism cards, glowing status badges, and smooth countdown timers.
 
@@ -49,7 +49,7 @@
 
 - **Frontend**: React (Vite) + Tailwind CSS + Lucide Icons + Canvas Confetti
 - **Backend**: Node.js + Express
-- **Database**: MySQL (`mysql2/promise`) with pure `schema.sql` + Zero-Config fallback engine for immediate execution out-of-the-box.
+- **Database**: MongoDB (`mongodb` driver) with numeric IDs, indexes, transaction-backed wallet/prediction flows, and a MySQL-to-Mongo migration utility. MySQL remains supported as the migration source.
 - **Authentication**: JWT (JSON Web Tokens) with `bcryptjs` password hashing.
 
 ---
@@ -73,19 +73,37 @@ Required keys are documented in `.env.example` and `DEPLOYMENT.md`. Do not use e
 
 For a **split** frontend/API deploy, also copy `client/.env.example` to `client/.env` and set `VITE_API_URL` before building.
 
-MySQL is optional only in local development (in-memory fallback). Production requires MySQL.
+MongoDB is the production runtime database. Use MongoDB Atlas or a replica-set deployment because wallet, prediction, daily reward, and settlement flows use transactions.
 
-### 3. Database Import (MySQL)
-To run with a local MySQL server, create the database and import `server/database/schema.sql`:
-```bash
-mysql -u root -p < server/database/schema.sql
+### 3. Database Migration
+Set these server variables in `server/.env`:
+
+```env
+DB_DRIVER=mongodb
+MONGODB_URI=mongodb://127.0.0.1:27017/?replicaSet=rs0
+MONGODB_DB=tadkaplay_db
 ```
-Then run the seed script:
+
+For an existing MySQL installation, keep the legacy MySQL variables available and preview the migration:
+
+```bash
+cd server
+npm run migrate:mysql-to-mongo:dry-run
+```
+
+After taking a backup and pausing writes, run the idempotent migration:
+
+```bash
+npm run migrate:mysql-to-mongo
+```
+
+It preserves numeric IDs, timestamps, JSON fields, roles, wallet history, and relationships. Keep the MySQL backup until verification is complete.
+
+For a new MongoDB installation, seed the database directly:
+
 ```bash
 cd server && npm run seed
 ```
-
-*Note: If MySQL is not running on your machine, TadkaPlay automatically initializes its internal high-performance data store so you can test all features instantly without configuration.*
 
 ### 4. Run Development Application
 To launch both client and server concurrently:
@@ -97,7 +115,7 @@ npm run dev
 - **Backend API**: `http://localhost:5000`
 
 ### 5. Production deployment
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** for CORS, MySQL, environment variables, and host setup.
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for MongoDB transactions, migration, environment variables, and host setup.
 
 ---
 
@@ -128,6 +146,8 @@ TadkaPlay/
 │   ├── database/
 │   │   ├── schema.sql
 │   │   ├── db.js
+│   │   ├── mongo.js
+│   │   ├── migrate-mysql-to-mongo.js
 │   │   └── seed.js
 │   ├── middleware/
 │   │   ├── auth.js

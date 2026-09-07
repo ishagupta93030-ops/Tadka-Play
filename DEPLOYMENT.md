@@ -4,7 +4,7 @@ TadkaPlay is three pieces that must be reachable over HTTPS:
 
 1. **React frontend** (`client/`) — Vite production build
 2. **Node.js / Express API** (`server/`) — `node server/server.js`
-3. **MySQL** — managed database; in-memory fallback is **disabled** when `NODE_ENV=production`
+3. **MongoDB** — MongoDB Atlas or a replica-set deployment; in-memory fallback is **disabled** when `NODE_ENV=production`
 
 Virtual coins have no real-world value. Do not add payment, UPI, or withdrawal features.
 
@@ -34,7 +34,10 @@ Copy from `.env.example` / `server/.env.example`. Replace every placeholder. Nev
 | `JWT_SECRET` | Yes | Random string, **32+ characters**. Signs login tokens |
 | `CLIENT_ORIGIN` | Yes | Frontend origin(s), comma-separated, **no trailing slash**. Example: `https://app.example.com` |
 | `SERVE_CLIENT` | No | Default: serve `client/dist` when that folder exists. Set `false` for API-only |
-| `DATABASE_URL` | One of URL **or** fields | `mysql://USER:PASSWORD@HOST:3306/DB_NAME` |
+| `DB_DRIVER` | Yes for MongoDB | Set to `mongodb` after cutover |
+| `MONGODB_URI` | Required for MongoDB | Atlas or replica-set connection string |
+| `MONGODB_DB` | No | Default: `tadkaplay_db` |
+| `DATABASE_URL` | Legacy migration only | `mysql://USER:PASSWORD@HOST:3306/DB_NAME` |
 | `DB_HOST` | If no URL | MySQL hostname |
 | `DB_PORT` | No | Default `3306` |
 | `DB_USER` | If no URL | MySQL user |
@@ -78,6 +81,19 @@ Vite bakes `VITE_*` into the JS bundle at build time.
 ---
 
 ## Database setup
+
+### MongoDB cutover
+
+MongoDB transactions require MongoDB Atlas or a MongoDB replica set. A standalone MongoDB server is not sufficient for prediction submissions, daily rewards, and match settlement.
+
+1. Set the legacy MySQL variables and `MONGODB_URI`/`MONGODB_DB`.
+2. Run `cd server && npm run migrate:mysql-to-mongo:dry-run`.
+3. Stop writes or place the app in maintenance mode, then run `npm run migrate:mysql-to-mongo`.
+4. Set `DB_DRIVER=mongodb`, restart the API, and verify login, predictions, wallet rewards, settlement, and admin actions.
+
+The migration preserves numeric IDs and is safe to rerun because rows are upserted by their original IDs. Keep the MySQL backup until MongoDB verification is complete.
+
+### Legacy MySQL setup
 
 1. Create an empty MySQL database in your provider (name it to match `DB_NAME`).
 2. Import tables from `server/database/schema.sql`. If `CREATE DATABASE` is not allowed, skip the first two SQL statements and import from `CREATE TABLE`.
