@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    strictPort: true,
     proxy: {
       '/api': {
         target: process.env.VITE_DEV_API_PROXY || 'http://localhost:5000',
@@ -15,6 +16,7 @@ export default defineConfig({
     }
   },
   preview: {
-    port: 3000
+    port: 3000,
+    strictPort: true
   }
 });
