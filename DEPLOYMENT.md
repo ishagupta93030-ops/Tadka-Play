@@ -65,7 +65,8 @@ Vite bakes `VITE_*` into the JS bundle at build time.
 | --- | --- |
 | `server/config.js` | **New.** Loads env files, parses DB URL, production validation |
 | `server/server.js` | Restricted CORS, bind `0.0.0.0`, optional static SPA, no stack traces to clients |
-| `server/database/db.js` | SSL + pool options; **no memory fallback in production**; no `CREATE DATABASE` on managed hosts |
+| `server/database/models.js` | Mongoose schemas and indexes for all MongoDB collections |
+| `server/database/db.js` | SQL compatibility and wallet storage fallback; **no memory fallback in production** |
 | `server/middleware/auth.js` | JWT secret from env (no hardcoded production secret) |
 | `server/database/seed.js` | Admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`; password is not logged |
 | `server/database/schema.sql` | Notes for importing on managed MySQL |

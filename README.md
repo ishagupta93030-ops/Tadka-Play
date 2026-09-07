@@ -49,7 +49,7 @@
 
 - **Frontend**: React (Vite) + Tailwind CSS + Lucide Icons + Canvas Confetti
 - **Backend**: Node.js + Express
-- **Database**: MongoDB (`mongodb` driver) with numeric IDs, indexes, transaction-backed wallet/prediction flows, and a MySQL-to-Mongo migration utility. MySQL remains supported as the migration source.
+- **Database**: MongoDB with Mongoose schemas, numeric IDs, indexes, transaction-backed wallet/prediction flows, and a MySQL-to-Mongo migration utility. MySQL remains supported as the migration source.
 - **Authentication**: JWT (JSON Web Tokens) with `bcryptjs` password hashing.
 
 ---
@@ -145,6 +145,7 @@ TadkaPlay/
 │   ├── server.js
 │   ├── database/
 │   │   ├── schema.sql
+│   │   ├── models.js
 │   │   ├── db.js
 │   │   ├── mongo.js
 │   │   ├── migrate-mysql-to-mongo.js

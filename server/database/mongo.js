@@ -1,13 +1,18 @@
-const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose');
+const models = require('./models');
 
 const COLLECTIONS = [
   'users', 'matches', 'predictions', 'coin_transactions', 'achievements',
   'user_achievements', 'daily_rewards', 'wheel_spins', 'notifications', 'audit_logs'
 ];
 
-let client;
 let database;
 let counters;
+
+const modelByCollection = Object.values(models).reduce((result, currentModel) => {
+  result[currentModel.collection.name] = currentModel;
+  return result;
+}, {});
 
 function parseJson(value) {
   if (typeof value !== 'string') return value;
@@ -47,6 +52,10 @@ function nextId(collection) {
   ).then(result => result.value.value);
 }
 
+function getCollection(name) {
+  return modelByCollection[name]?.collection || database.collection(name);
+}
+
 function baseFilter(sql, params) {
   const lower = sql.toLowerCase();
   if (lower.includes('where email = ?')) return { email: String(params[0]).trim().toLowerCase() };
@@ -79,27 +88,12 @@ function valuesFromSql(sql, params) {
 }
 
 async function initializeMongo(uri, dbName) {
-  client = new MongoClient(uri);
-  await client.connect();
-  database = client.db(dbName);
-  counters = database.collection('_counters');
+  await mongoose.connect(uri, { dbName, serverSelectionTimeoutMS: 10000 });
+  database = mongoose.connection.db;
+  counters = models.Counter.collection;
 
   await Promise.all([
-    database.collection('users').createIndex({ email: 1 }, { unique: true }),
-    database.collection('predictions').createIndex({ user_id: 1, match_id: 1 }, { unique: true }),
-    database.collection('user_achievements').createIndex({ user_id: 1, achievement_id: 1 }, { unique: true }),
-    database.collection('daily_rewards').createIndex({ user_id: 1 }, { unique: true }),
-    database.collection('wheel_spins').createIndex({ user_id: 1, spun_at: -1 }),
-    database.collection('notifications').createIndex({ user_id: 1, is_read: 1, created_at: -1 }),
-    database.collection('matches').createIndex({ status: 1 }),
-    database.collection('matches').createIndex({ sport: 1 }),
-    database.collection('matches').createIndex({ match_time: 1 }),
-    database.collection('predictions').createIndex({ user_id: 1 }),
-    database.collection('predictions').createIndex({ match_id: 1 }),
-    database.collection('predictions').createIndex({ outcome: 1 }),
-    database.collection('coin_transactions').createIndex({ user_id: 1, created_at: -1 }),
-    database.collection('audit_logs').createIndex({ created_at: -1 }),
-    database.collection('audit_logs').createIndex({ admin_user_id: 1 })
+    ...Object.values(models).map(currentModel => currentModel.createIndexes())
   ]);
 
   for (const name of COLLECTIONS) {
@@ -110,7 +104,7 @@ async function initializeMongo(uri, dbName) {
 }
 
 async function closeMongo() {
-  if (client) await client.close();
+  await mongoose.disconnect();
 }
 
 async function runQuery(sql, params = [], session = undefined) {
@@ -118,7 +112,7 @@ async function runQuery(sql, params = [], session = undefined) {
   const lower = trimmed.toLowerCase();
   const name = collectionName(trimmed);
   if (!name) return [];
-  const collection = database.collection(name);
+  const collection = getCollection(name);
 
   if (lower.startsWith('select')) {
     const filter = baseFilter(trimmed, params);
@@ -221,7 +215,7 @@ async function runQuery(sql, params = [], session = undefined) {
 async function mongoQuery(sql, params = []) { return runQuery(sql, params); }
 
 async function getMongoConnection() {
-  const session = client.startSession();
+  const session = await mongoose.startSession();
   return {
     session,
     async beginTransaction() { session.startTransaction(); },
