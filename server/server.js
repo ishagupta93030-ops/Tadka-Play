@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
-const { initDB } = require('./database/db');
+const { initDB, isUsingMongo, isUsingMySQL } = require('./database/db');
 const config = require('./config');
 
 const app = express();
@@ -60,6 +60,7 @@ app.get('/api/health', (req, res) => {
     status: 'online',
     app: 'TadkaPlay Backend API',
     environment: config.isProduction ? 'production' : 'development',
+    database: isUsingMongo() ? 'mongodb' : isUsingMySQL() ? 'mysql' : 'memory-fallback',
     disclaimer: 'Virtual coins only. No real-money deposits, withdrawals or cash prizes.',
     timestamp: new Date()
   });
@@ -96,6 +97,7 @@ async function startServer() {
   await initDB();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`TadkaPlay API Server running on port ${PORT}`);
+    console.log(`Database mode: ${isUsingMongo() ? 'MongoDB' : isUsingMySQL() ? 'MySQL' : 'in-memory fallback'}`);
     console.log('FREE-TO-PLAY VIRTUAL COINS ONLY - ZERO REAL MONEY INVOLVED');
     if (shouldServeClient) {
       console.log('Serving React production build from client/dist');

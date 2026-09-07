@@ -16,7 +16,7 @@ Virtual coins have no real-world value. Do not add payment, UPI, or withdrawal f
 | --- | --- |
 | Frontend | Built with Vite; if the API is on another host, rebuild after setting `VITE_API_URL` |
 | Backend | Listens on `0.0.0.0` and `PORT` from the host; CORS limited to `CLIENT_ORIGIN` |
-| Database | Real MySQL (or `DATABASE_URL`); SSL on most managed providers |
+| Database | MongoDB Atlas or a MongoDB replica set |
 | Secrets | Only in the host’s env UI or a private `.env` that is never committed |
 
 ---
@@ -82,14 +82,14 @@ Vite bakes `VITE_*` into the JS bundle at build time.
 
 ## Database setup
 
-### MongoDB cutover
+### MongoDB setup
 
 MongoDB transactions require MongoDB Atlas or a MongoDB replica set. A standalone MongoDB server is not sufficient for prediction submissions, daily rewards, and match settlement.
 
-1. Set the legacy MySQL variables and `MONGODB_URI`/`MONGODB_DB`.
-2. Run `cd server && npm run migrate:mysql-to-mongo:dry-run`.
+1. Set `DB_DRIVER=mongodb`, `MONGODB_URI`, and optionally `MONGODB_DB`.
+2. For an existing MySQL database, run `cd server && npm run migrate:mysql-to-mongo:dry-run`.
 3. Stop writes or place the app in maintenance mode, then run `npm run migrate:mysql-to-mongo`.
-4. Set `DB_DRIVER=mongodb`, restart the API, and verify login, predictions, wallet rewards, settlement, and admin actions.
+4. Restart the API and verify `/api/health` reports `"database": "mongodb"`, then verify login, predictions, wallet rewards, settlement, and admin actions.
 
 The migration preserves numeric IDs and is safe to rerun because rows are upserted by their original IDs. Keep the MySQL backup until MongoDB verification is complete.
 
