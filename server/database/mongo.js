@@ -49,7 +49,10 @@ function nextId(collection) {
     { _id: collection },
     { $inc: { value: 1 } },
     { upsert: true, returnDocument: 'after' }
-  ).then(result => result.value.value);
+  ).then(result => {
+    const counter = result?.value && typeof result.value === 'object' ? result.value : result;
+    return Number(counter?.value || 0);
+  });
 }
 
 function getCollection(name) {
