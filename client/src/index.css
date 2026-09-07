@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-tadka-dark text-slate-900 font-sans overflow-x-hidden antialiased;
+    background: #ffffff;
+    background-attachment: fixed;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f3f7;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B00;
+}
+
+/* Glassmorphism Card Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 14px 35px -28px rgba(15, 23, 42, 0.5);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 107, 0, 0.4);
+  box-shadow: 0 18px 35px -18px rgba(255, 107, 0, 0.38);
+}
+
+/* Light theme readability for legacy utility classes. */
+.light-theme .text-white {
+  color: #172033;
+}
+.light-theme .text-slate-100 { color: #1e293b; }
+.light-theme .text-slate-200 { color: #334155; }
+.light-theme .text-slate-300 { color: #475569; }
+.light-theme .text-slate-400 { color: #64748b; }
+.light-theme .text-slate-500 { color: #64748b; }
+.light-theme .text-slate-600 { color: #475569; }
+.light-theme .text-white.bg-gradient-to-r,
+.light-theme .text-white.bg-gradient-to-b,
+.light-theme .text-white.bg-tadka-orange,
+.light-theme .text-white.bg-emerald-600,
+.light-theme .text-white.bg-amber-700 {
+  color: #ffffff;
+}
+.light-theme .bg-black\/80 {
+  background-color: rgb(15 23 42 / 0.58);
+}
+.light-theme .bg-tadka-dark\/80,
+.light-theme .bg-tadka-dark\/90,
+.light-theme .bg-tadka-dark\/95 {
+  background-color: rgb(255 255 255 / 0.94);
+}
+
+/* Gradient Text */
+.gradient-text-orange {
+  background: linear-gradient(135deg, #FFD700 0%, #FF8A00 50%, #FF4D00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Live Pulsing Dot */
+.live-pulse-dot {
+  position: relative;
+}
+.live-pulse-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #EF4444;
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.4);
+    opacity: 0;
+  }
+}
