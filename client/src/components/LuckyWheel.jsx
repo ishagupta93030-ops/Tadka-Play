@@ -36,9 +36,9 @@ export default function LuckyWheel() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="fixed right-0 top-1/2 z-30 -translate-y-1/2 rounded-l-2xl border border-amber-300 bg-slate-950 px-3 py-4 text-amber-300 shadow-xl transition hover:px-4" title="Open lucky wheel">
-        <Gift className="mx-auto h-5 w-5" />
-        <span className="mt-1 block text-[10px] font-extrabold uppercase [writing-mode:vertical-rl]">Lucky Spin</span>
+      <button onClick={() => setOpen(true)} className="fixed bottom-24 right-3 z-[60] flex items-center gap-2 rounded-2xl border-2 border-amber-300 bg-slate-950 px-4 py-3 text-amber-300 shadow-[0_8px_30px_rgba(245,158,11,0.35)] transition hover:-translate-y-1 hover:bg-slate-800 md:bottom-6" title="Open lucky wheel">
+        <Gift className="h-5 w-5" />
+        <span className="text-xs font-extrabold uppercase tracking-wide">Lucky Spin</span>
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" onClick={() => !spinning && setOpen(false)}>
