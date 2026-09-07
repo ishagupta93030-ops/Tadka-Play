@@ -95,13 +95,21 @@ async function startServer() {
     config.validateProductionEnv();
   }
   await initDB();
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`TadkaPlay API Server running on port ${PORT}`);
     console.log(`Database mode: ${isUsingMongo() ? 'MongoDB' : isUsingMySQL() ? 'MySQL' : 'in-memory fallback'}`);
     console.log('FREE-TO-PLAY VIRTUAL COINS ONLY - ZERO REAL MONEY INVOLVED');
     if (shouldServeClient) {
       console.log('Serving React production build from client/dist');
     }
+  });
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Stop the existing TadkaPlay server or set a different PORT.`);
+    } else {
+      console.error('Backend listener error:', err.message);
+    }
+    process.exitCode = 1;
   });
 }
 
