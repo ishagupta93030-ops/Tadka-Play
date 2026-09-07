@@ -453,6 +453,9 @@ async function query(sql, params = []) {
 
   // 2. INSERT queries
     if (lowerSql.startsWith('insert into users')) {
+    const includesRoleColumns = lowerSql.includes('role');
+    const isAdmin = includesRoleColumns ? Number(params[5] || 0) : Number(params[4] || 0);
+    const role = includesRoleColumns ? params[4] : (isAdmin ? 'SUPER_MASTER' : 'USER');
     const newUser = {
       id: memoryStore.autoIncrement.users++,
       name: params[0],
@@ -462,8 +465,8 @@ async function query(sql, params = []) {
       xp: 0,
       level: 1,
       win_streak: 0,
-      is_admin: params[4] || 0,
-      role: params[5] || ((params[4] || 0) ? 'SUPER_MASTER' : 'USER'),
+      is_admin: isAdmin,
+      role,
       is_suspended: 0,
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       created_at: new Date()
