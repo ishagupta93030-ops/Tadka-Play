@@ -59,6 +59,17 @@ function getCollection(name) {
   return modelByCollection[name]?.collection || database.collection(name);
 }
 
+async function repairMissingIds() {
+  for (const name of COLLECTIONS) {
+    const collection = getCollection(name);
+    const missing = await collection.find({ $or: [{ id: null }, { id: { $exists: false } }] }).project({ _id: 1 }).toArray();
+    for (const document of missing) {
+      const id = await nextId(name);
+      await collection.updateOne({ _id: document._id }, { $set: { id } });
+    }
+  }
+}
+
 function baseFilter(sql, params) {
   const lower = sql.toLowerCase();
   if (lower.includes('where email = ?')) return { email: String(params[0]).trim().toLowerCase() };
@@ -103,6 +114,7 @@ async function initializeMongo(uri, dbName) {
     const max = await database.collection(name).findOne({}, { sort: { id: -1 }, projection: { id: 1 } });
     await counters.updateOne({ _id: name }, { $max: { value: Number(max?.id || 0) } }, { upsert: true });
   }
+  await repairMissingIds();
   console.log(`Connected to MongoDB database ${dbName}.`);
 }
 
