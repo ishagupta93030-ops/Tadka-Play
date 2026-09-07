@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import MobileBottomNav from './components/MobileBottomNav';
 import AuthModal from './components/AuthModal';
 import CoinDisclaimer from './components/CoinDisclaimer';
+import LuckyWheel from './components/LuckyWheel';
 
 // Pages
-import HomePage from './pages/HomePage';
-import LiveMatchesPage from './pages/LiveMatchesPage';
-import SportsPage from './pages/SportsPage';
-import WalletPage from './pages/WalletPage';
-import LeaderboardPage from './pages/LeaderboardPage';
-import ProfilePage from './pages/ProfilePage';
-import HistoryPage from './pages/HistoryPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import MatchDetailPage from './pages/MatchDetailPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const LiveMatchesPage = lazy(() => import('./pages/LiveMatchesPage'));
+const SportsPage = lazy(() => import('./pages/SportsPage'));
+const WalletPage = lazy(() => import('./pages/WalletPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const HistoryPage = lazy(() => import('./pages/HistoryPage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage'));
 
 export default function App() {
   return (
@@ -26,8 +27,9 @@ export default function App() {
           <div>
             <Header />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
+              <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-sm text-slate-400">Loading TadkaPlay...</div>}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
                 <Route path="/live" element={<LiveMatchesPage />} />
                 <Route path="/sports/:category?" element={<SportsPage />} />
                 <Route path="/wallet" element={<WalletPage />} />
@@ -38,7 +40,8 @@ export default function App() {
                 <Route path="/coin-history" element={<WalletPage />} />
                 <Route path="/admin" element={<AdminDashboardPage />} />
                 <Route path="/match/:id" element={<MatchDetailPage />} />
-              </Routes>
+                </Routes>
+              </Suspense>
             </main>
           </div>
 
@@ -56,6 +59,7 @@ export default function App() {
 
           <MobileBottomNav />
           <AuthModal />
+          <LuckyWheel />
         </div>
       </Router>
     </AuthProvider>

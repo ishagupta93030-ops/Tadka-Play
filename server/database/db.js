@@ -13,6 +13,7 @@ class MemoryStore {
     this.achievements = [];
     this.user_achievements = [];
     this.daily_rewards = [];
+    this.wheel_spins = [];
     this.notifications = [];
     this.audit_logs = [];
     this.autoIncrement = {
@@ -23,6 +24,7 @@ class MemoryStore {
       achievements: 1,
       user_achievements: 1,
       daily_rewards: 1
+      ,wheel_spins: 1
       ,notifications: 1
       ,audit_logs: 1
     };
@@ -311,8 +313,10 @@ async function migrateSchema() {
     "ALTER TABLE users MODIFY coin_balance BIGINT UNSIGNED NOT NULL DEFAULT 1000000",
     "ALTER TABLE matches ADD COLUMN prediction_deadline DATETIME NULL AFTER match_time",
     "ALTER TABLE predictions MODIFY outcome ENUM('PENDING', 'WON', 'LOST', 'CANCELLED') NOT NULL DEFAULT 'PENDING'",
+    "ALTER TABLE coin_transactions MODIFY transaction_type ENUM('REGISTRATION_BONUS', 'DAILY_REWARD', 'STREAK_BONUS', 'PREDICTION_STAKE', 'PREDICTION_WIN', 'ACHIEVEMENT_REWARD', 'ADMIN_ADJUSTMENT', 'WHEEL_SPIN') NOT NULL",
     "CREATE TABLE IF NOT EXISTS notifications (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, type VARCHAR(50) NOT NULL, message VARCHAR(255) NOT NULL, is_read TINYINT(1) NOT NULL DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_notifications_user_read (user_id, is_read, created_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     "CREATE TABLE IF NOT EXISTS audit_logs (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, admin_user_id INT NOT NULL, admin_role VARCHAR(20) NOT NULL, action VARCHAR(100) NOT NULL, target_type VARCHAR(50) DEFAULT NULL, target_id VARCHAR(100) DEFAULT NULL, details JSON DEFAULT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (admin_user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_audit_created_at (created_at), INDEX idx_audit_admin (admin_user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    "CREATE TABLE IF NOT EXISTS wheel_spins (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, reward_amount INT NOT NULL, luck_score INT NOT NULL, spun_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, INDEX idx_wheel_user_time (user_id, spun_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     "UPDATE users SET role = CASE WHEN is_admin = 1 THEN 'SUPER_MASTER' ELSE 'USER' END WHERE role = 'USER' OR role IS NULL"
   ];
 
@@ -440,6 +444,10 @@ async function query(sql, params = []) {
       const r = memoryStore.daily_rewards.find(x => x.user_id === parseInt(params[0]));
       return r ? [r] : [];
     }
+    if (sql.includes('FROM wheel_spins WHERE user_id = ?')) {
+      const spins = memoryStore.wheel_spins.filter(x => x.user_id === parseInt(params[0]));
+      return spins.sort((a, b) => new Date(b.spun_at) - new Date(a.spun_at)).slice(0, 1);
+    }
     return [];
   }
 
@@ -541,6 +549,15 @@ async function query(sql, params = []) {
       memoryStore.daily_rewards.push(newDR);
     }
     return { insertId: newDR.id, affectedRows: 1 };
+  }
+
+  if (lowerSql.startsWith('insert into wheel_spins')) {
+    const spin = {
+      id: memoryStore.autoIncrement.wheel_spins++, user_id: params[0], reward_amount: params[1],
+      luck_score: params[2], spun_at: params[3] || new Date()
+    };
+    memoryStore.wheel_spins.push(spin);
+    return { insertId: spin.id, affectedRows: 1 };
   }
 
   if (lowerSql.startsWith('insert into notifications')) {

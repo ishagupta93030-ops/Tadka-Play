@@ -150,4 +150,45 @@ router.post('/claim-daily', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/spin-wheel', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const now = new Date();
+  const cooldownStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const rewards = [100, 250, 500, 1000, 2500, 5000, 10000, 50000];
+
+  try {
+    const recentSpins = await query('SELECT spun_at FROM wheel_spins WHERE user_id = ? ORDER BY spun_at DESC LIMIT 1', [userId]);
+    if (recentSpins.length > 0 && new Date(recentSpins[0].spun_at) > cooldownStart) {
+      return res.status(429).json({ success: false, message: 'Your wheel is recharging. Come back after 24 hours.', nextSpinAt: new Date(new Date(recentSpins[0].spun_at).getTime() + 24 * 60 * 60 * 1000) });
+    }
+
+    const users = await query('SELECT coin_balance, xp, level, win_streak FROM users WHERE id = ?', [userId]);
+    if (!users.length) return res.status(404).json({ success: false, message: 'User not found.' });
+    const user = users[0];
+    const luck = Math.min(100, 25 + Number(user.level || 1) * 4 + Number(user.win_streak || 0) * 3 + Math.floor(Number(user.xp || 0) / 250));
+    const roll = Math.random() * 100;
+    const rewardIndex = roll < luck * 0.08 ? 7 : roll < luck * 0.2 ? 6 : roll < luck * 0.38 ? 5 : roll < 55 ? 4 : roll < 72 ? 3 : roll < 88 ? 2 : roll < 97 ? 1 : 0;
+    const reward = rewards[rewardIndex];
+    const conn = await getConnection();
+    try {
+      if (conn) await conn.beginTransaction();
+      await queryWithConnection(conn, 'UPDATE users SET coin_balance = coin_balance + ? WHERE id = ?', [reward, userId]);
+      const updated = await queryWithConnection(conn, 'SELECT coin_balance FROM users WHERE id = ?', [userId]);
+      const balanceAfter = updated[0].coin_balance;
+      await queryWithConnection(conn, 'INSERT INTO wheel_spins (user_id, reward_amount, luck_score, spun_at) VALUES (?, ?, ?, ?)', [userId, reward, luck, now]);
+      await queryWithConnection(conn, 'INSERT INTO coin_transactions (user_id, amount, transaction_type, description, balance_after) VALUES (?, ?, ?, ?, ?)', [userId, reward, 'WHEEL_SPIN', `Wheel spin reward: ${reward} virtual coins`, balanceAfter]);
+      if (conn) await conn.commit();
+      return res.json({ success: true, reward, luck, newBalance: balanceAfter, nextSpinAt: new Date(now.getTime() + 24 * 60 * 60 * 1000) });
+    } catch (innerErr) {
+      if (conn) await conn.rollback();
+      throw innerErr;
+    } finally {
+      if (conn) await conn.release();
+    }
+  } catch (err) {
+    console.error('Wheel spin error:', err);
+    return res.status(500).json({ success: false, message: 'Unable to spin the wheel right now.' });
+  }
+});
+
 module.exports = router;

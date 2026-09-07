@@ -2,7 +2,7 @@ const { MongoClient } = require('mongodb');
 
 const COLLECTIONS = [
   'users', 'matches', 'predictions', 'coin_transactions', 'achievements',
-  'user_achievements', 'daily_rewards', 'notifications', 'audit_logs'
+  'user_achievements', 'daily_rewards', 'wheel_spins', 'notifications', 'audit_logs'
 ];
 
 let client;
@@ -89,6 +89,7 @@ async function initializeMongo(uri, dbName) {
     database.collection('predictions').createIndex({ user_id: 1, match_id: 1 }, { unique: true }),
     database.collection('user_achievements').createIndex({ user_id: 1, achievement_id: 1 }, { unique: true }),
     database.collection('daily_rewards').createIndex({ user_id: 1 }, { unique: true }),
+    database.collection('wheel_spins').createIndex({ user_id: 1, spun_at: -1 }),
     database.collection('notifications').createIndex({ user_id: 1, is_read: 1, created_at: -1 }),
     database.collection('matches').createIndex({ status: 1 }),
     database.collection('matches').createIndex({ sport: 1 }),
