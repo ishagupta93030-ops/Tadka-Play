@@ -19,6 +19,8 @@ export default function PredictionModal({ match, onClose, onSuccess }) {
 
   if (!match) return null;
 
+  const canPredict = match.status === 'LIVE';
+
   const quickCoinAmounts = [10, 25, 50, 100, 250];
   const multiplier = 1.9;
   const currentStake = customStake ? parseInt(customStake) || 0 : stakedCoins;
@@ -122,7 +124,14 @@ export default function PredictionModal({ match, onClose, onSuccess }) {
               </div>
             )}
 
-            {!showConfirm ? (
+            {!canPredict ? (
+              <div className="space-y-4 text-center">
+                <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-4 text-sm font-semibold text-amber-200">
+                  {match.status === 'UPCOMING' ? 'This match has not started yet. The Master must start it before you can play.' : 'This match has already ended. Predictions are closed.'}
+                </div>
+                <button type="button" onClick={onClose} className="w-full rounded-xl bg-slate-700 px-4 py-3 text-sm font-bold text-white hover:bg-slate-600">Close</button>
+              </div>
+            ) : !showConfirm ? (
               /* Step 1: Select Team & Coins */
               <div className="space-y-5">
                 

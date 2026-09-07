@@ -367,6 +367,19 @@ export default function AdminDashboardPage() {
 
                 {/* Actions */}
                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                  {m.status === 'UPCOMING' && (
+                    <button
+                      onClick={() => {
+                        setLiveMatch(m);
+                        setLiveForm({ status: 'LIVE', score_team_a: m.score_team_a || '0', score_team_b: m.score_team_b || '0', match_minute: 'Started', live_event_text: 'Match started' });
+                        setIsLiveModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 text-xs font-extrabold text-white bg-red-600 hover:bg-red-500 rounded-xl transition-all flex items-center gap-1"
+                    >
+                      <Radio className="w-3.5 h-3.5" />
+                      <span>Start Match</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setLiveMatch(m);

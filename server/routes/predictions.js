@@ -44,9 +44,9 @@ router.post('/submit', authenticateToken, async (req, res) => {
 
     const match = matches[0];
     const predictionDeadline = match.prediction_deadline || match.match_time;
-    if (match.status === 'COMPLETED' || (predictionDeadline && new Date() >= new Date(predictionDeadline))) {
+    if (match.status !== 'LIVE' || (predictionDeadline && new Date() >= new Date(predictionDeadline))) {
       if (conn) await conn.rollback();
-      return res.status(400).json({ success: false, message: 'This match has already ended. Predictions are closed.' });
+      return res.status(400).json({ success: false, message: match.status === 'UPCOMING' ? 'This match has not started yet. Predictions open when the Master starts the match.' : 'This match has already ended. Predictions are closed.' });
     }
 
     const validTeams = [match.team_a_name, match.team_b_name].map(team => team.toLowerCase());

@@ -124,6 +124,10 @@ router.post('/matches/:id/live-update', async (req, res) => {
     const matchId = req.params.id;
     const { status, score_team_a, score_team_b, match_minute, live_event_text } = req.body;
 
+    if (status && !['UPCOMING', 'LIVE'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Use Declare Winner to complete a match.' });
+    }
+
     const matches = await query('SELECT * FROM matches WHERE id = ?', [matchId]);
     if (matches.length === 0) {
       return res.status(404).json({ success: false, message: 'Match not found.' });
@@ -325,10 +329,13 @@ router.post('/users/:id/adjust-coins', async (req, res) => {
     const userId = req.params.id;
     const { amount, reason } = req.body;
 
-    const coins = parseInt(amount);
-    if (isNaN(coins)) {
-      return res.status(400).json({ success: false, message: 'Valid coin amount required.' });
+    const coins = Number(amount);
+    if (!Number.isSafeInteger(coins) || coins <= 0) {
+      return res.status(400).json({ success: false, message: 'Enter a positive whole-number coin grant.' });
     }
+
+    const targetUsers = await query('SELECT id FROM users WHERE id = ?', [userId]);
+    if (!targetUsers.length) return res.status(404).json({ success: false, message: 'User not found.' });
 
     const conn = await getConnection();
     try {
@@ -343,7 +350,7 @@ router.post('/users/:id/adjust-coins', async (req, res) => {
         userId,
         coins,
         'ADMIN_ADJUSTMENT',
-        `⚙️ Admin Bonus/Adjustment: ${reason || 'Support Grant'} (${coins >= 0 ? '+' : ''}${coins} 🪙)`,
+        `⚙️ Master Grant: ${reason || 'Support Grant'} (+${coins} 🪙)`,
         balanceAfter
       ]);
 
@@ -357,7 +364,7 @@ router.post('/users/:id/adjust-coins', async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Successfully adjusted balance by ${coins >= 0 ? '+' : ''}${coins} virtual coins.`
+      message: `Successfully granted +${coins} virtual coins.`
     });
   } catch (err) {
     console.error('Adjust coins error:', err);
