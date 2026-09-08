@@ -32,7 +32,7 @@ router.post('/register', async (req, res) => {
 
     // Hash password securely with bcrypt
     const passwordHash = await bcrypt.hash(password, 10);
-    const STARTING_COINS = 1000000;
+    const STARTING_COINS = 0;
 
     // Create User
     const result = await query(
@@ -42,19 +42,13 @@ router.post('/register', async (req, res) => {
 
     const userId = result.insertId;
 
-    // Record welcome bonus transaction (balance_after = starting coins)
-    await query(
-      'INSERT INTO coin_transactions (user_id, amount, transaction_type, description, balance_after) VALUES (?, ?, ?, ?, ?)',
-      [userId, STARTING_COINS, 'REGISTRATION_BONUS', '🪙 Welcome Bonus: 1,000,000 FREE Virtual Coins', STARTING_COINS]
-    );
-
     // Generate Token
     const userPayload = { id: userId };
     const token = jwt.sign(userPayload, JWT_SECRET, { expiresIn: '7d' });
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful! 🪙 1,000,000 FREE Virtual Coins added to your wallet.',
+      message: 'Registration successful. Your Master can provide virtual coins when you are ready to play.',
       token,
       user: {
         id: userId,

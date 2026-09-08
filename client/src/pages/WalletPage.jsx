@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { apiRequest } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { formatCoins, formatDate } from '../utils/formatters';
-import DailyRewardModal from '../components/DailyRewardModal';
 import CoinDisclaimer from '../components/CoinDisclaimer';
-import { Coins, Gift, History, ShieldAlert, Sparkles, ArrowDownRight, ArrowUpRight, Flame } from 'lucide-react';
+import { History, ShieldAlert, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 export default function WalletPage() {
   const { user } = useAuth();
   const [walletData, setWalletData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isDailyModalOpen, setIsDailyModalOpen] = useState(false);
 
   useEffect(() => {
     fetchWallet();
@@ -37,7 +35,7 @@ export default function WalletPage() {
         <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-2">
           <span>🪙 Virtual Coin Wallet</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-1">Manage your virtual coins, daily login rewards & prediction history</p>
+        <p className="text-xs text-slate-400 mt-1">View your Master-issued virtual coins and prediction history</p>
       </div>
 
       {/* Main Balance Display Card */}
@@ -47,7 +45,7 @@ export default function WalletPage() {
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div>
             <span className="text-xs font-extrabold text-amber-400 uppercase tracking-widest block mb-1">
-              FREE Virtual Coins Balance
+              Master-Issued Virtual Coins Balance
             </span>
             <div className="text-4xl sm:text-5xl font-black text-white flex items-center gap-2">
               <span>🪙</span>
@@ -56,15 +54,6 @@ export default function WalletPage() {
             <p className="text-xs text-slate-400 mt-2">Zero real monetary value • Strictly for fun & games</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setIsDailyModalOpen(true)}
-              className="flex-1 sm:flex-none px-5 py-3.5 text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 via-tadka-orange to-tadka-flame rounded-2xl shadow-glow-yellow hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <Gift className="w-4 h-4 text-yellow-200" />
-              <span>Daily Free Coins 🎁</span>
-            </button>
-          </div>
         </div>
 
         <div className="mt-6 pt-4 border-t border-amber-500/20">
@@ -81,7 +70,7 @@ export default function WalletPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
             <span>✅</span>
-            <span>Earn coins via Signup, Daily Login & Predictions</span>
+            <span>Receive coins only when the Master grants them</span>
           </div>
           <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
             <span>✅</span>
@@ -146,20 +135,10 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="text-center py-8 text-slate-400 text-xs">
-            No transactions found yet. Submit predictions or claim daily bonuses to build your history!
+            No transactions found yet. Master grants and prediction activity will appear here.
           </div>
         )}
       </div>
-
-      <DailyRewardModal
-        isOpen={isDailyModalOpen}
-        onClose={() => {
-          setIsDailyModalOpen(false);
-          fetchWallet();
-        }}
-        currentStreak={walletData?.dailyReward?.streakCount || 1}
-        canClaim={walletData?.dailyReward?.canClaim || false}
-      />
 
     </div>
   );

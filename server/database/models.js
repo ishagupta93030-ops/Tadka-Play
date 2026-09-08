@@ -19,7 +19,7 @@ const User = model('User', 'users', {
   name: { type: String, required: true, maxlength: 100 },
   email: { type: String, required: true, lowercase: true, trim: true },
   password_hash: { type: String, required: true },
-  coin_balance: { type: Number, default: 1000000, min: 0 },
+  coin_balance: { type: Number, default: 0, min: 0 },
   xp: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
   win_streak: { type: Number, default: 0 },

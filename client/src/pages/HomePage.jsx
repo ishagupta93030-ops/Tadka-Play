@@ -3,9 +3,8 @@ import { apiRequest } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import MatchCard from '../components/MatchCard';
 import PredictionModal from '../components/PredictionModal';
-import DailyRewardModal from '../components/DailyRewardModal';
 import CoinDisclaimer from '../components/CoinDisclaimer';
-import { Flame, Sparkles, Trophy, Gift, ArrowRight, RefreshCw, Search, Bell, CalendarDays } from 'lucide-react';
+import { Flame, Sparkles, Trophy, ArrowRight, RefreshCw, Search, Bell, CalendarDays } from 'lucide-react';
 
 export default function HomePage() {
   const { user, openAuthModal } = useAuth();
@@ -17,9 +16,6 @@ export default function HomePage() {
   // Prediction Modal state
   const [activeMatchForPrediction, setActiveMatchForPrediction] = useState(null);
   
-  // Daily Reward Modal state
-  const [isDailyModalOpen, setIsDailyModalOpen] = useState(false);
-  const [dailyInfo, setDailyInfo] = useState({ canClaim: true, streakCount: 1 });
   const [dailyUpdates, setDailyUpdates] = useState([]);
 
   useEffect(() => {
@@ -29,10 +25,13 @@ export default function HomePage() {
       return undefined;
     }
 
-    fetchWalletInfo();
     fetchDailyUpdates();
     const refreshUpdates = window.setInterval(fetchDailyUpdates, 60000);
-    return () => window.clearInterval(refreshUpdates);
+    const refreshMatches = window.setInterval(fetchMatches, 15000);
+    return () => {
+      window.clearInterval(refreshUpdates);
+      window.clearInterval(refreshMatches);
+    };
   }, [selectedSport, user]);
 
   const fetchMatches = async () => {
@@ -48,15 +47,6 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchWalletInfo = async () => {
-    try {
-      const data = await apiRequest('/wallet/details');
-      if (data.success && data.dailyReward) {
-        setDailyInfo(data.dailyReward);
-      }
-    } catch (e) {}
   };
 
   const fetchDailyUpdates = async () => {
@@ -109,7 +99,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 font-medium leading-relaxed">
-            Test your sports intuition on Cricket, Football, Tennis & Basketball. Get <strong className="text-amber-300">1,000,000 FREE coins</strong> on signup and climb the global leaderboards!
+            Test your sports intuition on Cricket, Football, Tennis & Basketball. The Master provides virtual coins for hosted games.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -125,15 +115,6 @@ export default function HomePage() {
               <ArrowRight className="w-4 h-4" />
             </button>
 
-            {user && (
-              <button
-                onClick={() => setIsDailyModalOpen(true)}
-                className="px-5 py-3.5 text-sm font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-2xl transition-all flex items-center gap-2"
-              >
-                <Gift className="w-4 h-4 text-amber-400" />
-                <span>Daily Rewards ({dailyInfo.canClaim ? 'Ready 🎁' : 'Claimed'})</span>
-              </button>
-            )}
           </div>
 
           <CoinDisclaimer />
@@ -242,30 +223,6 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* SECTION 4: 🎁 Daily Reward Highlight Banner */}
-      <section className="glass-card rounded-3xl p-6 border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-tadka-card to-amber-950/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-glow-yellow">
-            🎁
-          </div>
-          <div>
-            <h3 className="font-extrabold text-lg text-white">Daily Login Free Coins</h3>
-            <p className="text-xs text-slate-300">
-              Claim up to <strong className="text-amber-300">600 FREE coins daily</strong> on a 7-day streak. Never run out of prediction balance!
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            if (!user) openAuthModal('login');
-            else setIsDailyModalOpen(true);
-          }}
-          className="w-full sm:w-auto px-6 py-3 text-xs font-extrabold text-white bg-gradient-to-r from-amber-500 to-tadka-orange rounded-xl shadow-glow-yellow hover:brightness-110 transition-all shrink-0"
-        >
-          Claim Daily Coins 🪙
-        </button>
-      </section>
-
       {user && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -319,14 +276,6 @@ export default function HomePage() {
           }}
         />
       )}
-
-      {/* Active Daily Reward Modal */}
-      <DailyRewardModal
-        isOpen={isDailyModalOpen}
-        onClose={() => setIsDailyModalOpen(false)}
-        currentStreak={dailyInfo.streakCount}
-        canClaim={dailyInfo.canClaim}
-      />
 
     </div>
   );

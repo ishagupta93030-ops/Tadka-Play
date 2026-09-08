@@ -27,13 +27,6 @@ router.post('/submit', authenticateToken, async (req, res) => {
       }
 
       const user = users[0];
-      if (user.coin_balance < stake) {
-        if (conn) await conn.rollback();
-        return res.status(400).json({
-          success: false,
-          message: `Insufficient virtual coins! Your balance is 🪙 ${user.coin_balance.toLocaleString()} coins.`
-        });
-      }
 
     // 2. Fetch match & check status / deadline inside the same transaction.
     const matches = await queryWithConnection(conn, 'SELECT * FROM matches WHERE id = ?' + (conn ? ' FOR UPDATE' : ''), [match_id]);
@@ -43,10 +36,18 @@ router.post('/submit', authenticateToken, async (req, res) => {
     }
 
     const match = matches[0];
-    const predictionDeadline = match.prediction_deadline || match.match_time;
+    const predictionDeadline = match.prediction_deadline;
     if (match.status !== 'LIVE' || (predictionDeadline && new Date() >= new Date(predictionDeadline))) {
       if (conn) await conn.rollback();
-      return res.status(400).json({ success: false, message: match.status === 'UPCOMING' ? 'This match has not started yet. Predictions open when the Master starts the match.' : 'This match has already ended. Predictions are closed.' });
+      return res.status(400).json({ success: false, message: match.status === 'UPCOMING' ? 'This event has not started. Predictions open when the Master hosts the game.' : 'This event is already over. Predictions are closed.' });
+    }
+
+    if (user.coin_balance < stake) {
+      if (conn) await conn.rollback();
+      return res.status(400).json({
+        success: false,
+        message: `Insufficient virtual coins. Ask the Master to provide coins first. Your balance is 🪙 ${user.coin_balance.toLocaleString()}.`
+      });
     }
 
     const validTeams = [match.team_a_name, match.team_b_name].map(team => team.toLowerCase());
