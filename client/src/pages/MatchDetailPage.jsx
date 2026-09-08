@@ -138,7 +138,7 @@ export default function MatchDetailPage() {
         </div>
 
         {/* Action Predict CTA */}
-        {matchData.status !== 'COMPLETED' && (
+        {matchData.status === 'LIVE' && (
           <button
             onClick={handlePredict}
             className="w-full py-4 text-sm font-extrabold text-white bg-gradient-to-r from-tadka-orange via-tadka-orange-light to-tadka-flame rounded-2xl shadow-glow-orange hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -146,6 +146,11 @@ export default function MatchDetailPage() {
             <Sparkles className="w-5 h-5 text-yellow-200 fill-yellow-200" />
             <span>Submit Virtual Coin Prediction</span>
           </button>
+        )}
+        {matchData.status === 'UPCOMING' && (
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-xs font-semibold text-amber-200">
+            The Master must host this event before predictions open.
+          </div>
         )}
 
       </div>

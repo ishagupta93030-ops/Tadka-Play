@@ -62,6 +62,7 @@ router.get('/details', authenticateToken, async (req, res) => {
 
 // CLAIM DAILY REWARD COINS
 router.post('/claim-daily', authenticateToken, async (req, res) => {
+  return res.status(403).json({ success: false, message: 'Only a Master can provide virtual coins.' });
   try {
     const userId = req.user.id;
 
@@ -151,6 +152,7 @@ router.post('/claim-daily', authenticateToken, async (req, res) => {
 });
 
 router.post('/spin-wheel', authenticateToken, async (req, res) => {
+  return res.status(403).json({ success: false, message: 'The lucky spinner has been removed. Only a Master can provide virtual coins.' });
   const userId = req.user.id;
   const now = new Date();
   const cooldownStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);

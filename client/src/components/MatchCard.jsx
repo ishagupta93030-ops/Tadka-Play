@@ -136,7 +136,7 @@ export default function MatchCard({ match, onPredict }) {
           <span className="truncate">{match.venue}</span>
         </div>
 
-        {match.status !== 'COMPLETED' ? (
+        {match.status === 'LIVE' ? (
           <button
             onClick={() => onPredict(match)}
             className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-tadka-orange via-tadka-orange-light to-tadka-flame rounded-xl shadow-glow-orange hover:brightness-110 active:scale-95 transition-all flex items-center gap-1.5"
@@ -144,6 +144,10 @@ export default function MatchCard({ match, onPredict }) {
             <Sparkles className="w-3.5 h-3.5 text-yellow-200 fill-yellow-200" />
             <span>Predict Now</span>
           </button>
+        ) : match.status === 'UPCOMING' ? (
+          <span className="px-3 py-1.5 text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+            Waiting for Master
+          </span>
         ) : (
           <Link
             to={`/match/${match.id}`}

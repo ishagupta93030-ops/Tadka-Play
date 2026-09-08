@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production' ;
 
 function parseOrigins(value) {
   if (!value) return [];

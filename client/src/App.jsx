@@ -5,7 +5,6 @@ import Header from './components/Header';
 import MobileBottomNav from './components/MobileBottomNav';
 import AuthModal from './components/AuthModal';
 import CoinDisclaimer from './components/CoinDisclaimer';
-import LuckyWheel from './components/LuckyWheel';
 
 // Pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -59,7 +58,6 @@ export default function App() {
 
           <MobileBottomNav />
           <AuthModal />
-          <LuckyWheel />
         </div>
       </Router>
     </AuthProvider>

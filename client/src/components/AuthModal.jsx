@@ -113,7 +113,7 @@ export default function AuthModal() {
               🪙
             </div>
             <div>
-              <p className="text-xs font-bold text-amber-300">1,000,000 FREE Virtual Coins Bonus!</p>
+              <p className="text-xs font-bold text-amber-300">Virtual coins are provided by the Master</p>
               <p className="text-[11px] text-amber-200/80">Claim your starting balance immediately upon registration.</p>
             </div>
           </div>
