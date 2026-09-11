@@ -2,11 +2,12 @@ node_modules/
 client/dist/
 client/.env
 client/.env.local
-client/.env.production
 server/.env
 .env
 .env.local
 .env.production
+# client/.env.production is intentionally committed - only contains VITE_API_URL (no secrets)
+!client/.env.production
 *.log
 .DS_Store
 Thumbs.db
